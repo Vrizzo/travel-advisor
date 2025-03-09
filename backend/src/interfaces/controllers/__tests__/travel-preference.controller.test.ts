@@ -11,10 +11,12 @@ const mockRequest = (body = {}, params = {}) => ({
 }) as Request;
 
 const mockResponse = () => {
-  const res = {} as Response;
-  res.status = jest.fn().mockReturnValue(res);
-  res.json = jest.fn().mockReturnValue(res);
-  res.send = jest.fn().mockReturnValue(res);
+  const res = {
+    status: jest.fn().mockReturnThis(),
+    json: jest.fn().mockReturnThis(),
+    send: jest.fn().mockReturnThis(),
+    sendStatus: jest.fn().mockReturnThis()
+  } as unknown as Response;
   return res;
 };
 
