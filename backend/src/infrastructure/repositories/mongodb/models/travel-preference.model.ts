@@ -1,10 +1,13 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface TravelPreferenceDocument extends Document {
+  _id: mongoose.Types.ObjectId;
   departureCity: string;
   periodFrom: string;
   periodTo: string;
   budget: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const travelPreferenceSchema = new Schema({
