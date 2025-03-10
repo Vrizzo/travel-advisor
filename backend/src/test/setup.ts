@@ -1,6 +1,4 @@
 import '@jest/globals';
-import mongoose from 'mongoose';
-
 // Mock MongoDB connection
 jest.mock('mongoose', () => {
   const actualMongoose = jest.requireActual('mongoose');
