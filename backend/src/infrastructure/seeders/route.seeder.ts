@@ -153,17 +153,33 @@ export async function seedRoutes(): Promise<void> {
 // Run seeder if this script is run directly
 if (require.main === module) {
   // Connect to MongoDB
-  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/travel-advisor')
-    .then(() => {
-      console.log('📦 Connected to MongoDB');
-      return seedRoutes();
-    })
-    .then(() => {
-      console.log('🌱 Seeding completed');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('❌ Error:', error);
-      process.exit(1);
-    });
+  const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/travel-advisor';
+  
+  // Skip connection in test environment
+  if (process.env.NODE_ENV !== 'test') {
+    mongoose.connect(mongoUri)
+      .then(() => {
+        console.log('📦 Connected to MongoDB');
+        return seedRoutes();
+      })
+      .then(() => {
+        console.log('🌱 Seeding completed');
+        process.exit(0);
+      })
+      .catch((error) => {
+        console.error('❌ Error:', error);
+        process.exit(1);
+      });
+  } else {
+    // In test environment, just run the seeder
+    seedRoutes()
+      .then(() => {
+        console.log('🌱 Seeding completed');
+        process.exit(0);
+      })
+      .catch((error) => {
+        console.error('❌ Error:', error);
+        process.exit(1);
+      });
+  }
 } 

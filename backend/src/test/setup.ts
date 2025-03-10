@@ -1,13 +1,26 @@
 import '@jest/globals';
 import mongoose from 'mongoose';
 
-// Add any global test setup here
+// Mock MongoDB connection
+jest.mock('mongoose', () => {
+  const actualMongoose = jest.requireActual('mongoose');
+  return {
+    ...actualMongoose,
+    connect: jest.fn().mockResolvedValue(undefined),
+    connection: {
+      close: jest.fn().mockResolvedValue(undefined),
+      on: jest.fn(),
+      once: jest.fn(),
+    },
+  };
+});
+
 beforeAll(async () => {
-  // Connect to test database
-  await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/travel-advisor-test');
+  // No need to actually connect to MongoDB
+  console.log('Using mock MongoDB connection');
 });
 
 afterAll(async () => {
-  // Close database connection
-  await mongoose.connection.close();
+  // No need to actually close connection
+  console.log('Mock MongoDB connection closed');
 }); 
