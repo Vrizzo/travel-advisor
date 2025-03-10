@@ -2,9 +2,6 @@ import mongoose from 'mongoose';
 import { RouteModel } from '../repositories/mongodb/models/route.model';
 import { Route } from '../../domain/entities/route';
 
-const MONGODB_URI = 'mongodb://localhost:27017';
-const DB_NAME = 'travel-advisor';
-
 const routes: Route[] = [
   // Major European Hubs
   new Route('LHR', 'CDG'),

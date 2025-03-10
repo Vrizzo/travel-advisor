@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { TravelPreference } from '../../../domain/entities/travel-preference';
 import { TravelPreferenceUseCase } from '../../../application/use-cases/travel-preference.use-case';
 import { TravelPreferenceController } from '../travel-preference.controller';
+import { TravelPreferenceRepository } from '../../../domain/repositories/travel-preference.repository';
 
 // Mock Express Request and Response
 const mockRequest = (body = {}, params = {}) => ({
@@ -20,12 +21,43 @@ const mockResponse = () => {
   return res;
 };
 
+// Mock Repository
+class MockTravelPreferenceRepository implements TravelPreferenceRepository {
+  private preferences: TravelPreference[] = [];
+
+  async save(preference: TravelPreference): Promise<TravelPreference> {
+    this.preferences.push(preference);
+    return preference;
+  }
+
+  async findAll(): Promise<TravelPreference[]> {
+    return this.preferences;
+  }
+
+  async findById(id: string): Promise<TravelPreference | null> {
+    return this.preferences.find(p => p.id === id) || null;
+  }
+
+  async update(id: string, preference: TravelPreference): Promise<TravelPreference | null> {
+    const index = this.preferences.findIndex(p => p.id === id);
+    if (index === -1) return null;
+    this.preferences[index] = preference;
+    return preference;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const initialLength = this.preferences.length;
+    this.preferences = this.preferences.filter(p => p.id !== id);
+    return this.preferences.length < initialLength;
+  }
+}
+
 // Mock Use Case
 class MockTravelPreferenceUseCase extends TravelPreferenceUseCase {
   private preferences: TravelPreference[] = [];
 
   constructor() {
-    super({} as any); // Pass empty object as repository since we're overriding all methods
+    super(new MockTravelPreferenceRepository());
   }
 
   async createTravelPreference(
