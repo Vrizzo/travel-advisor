@@ -1,10 +1,13 @@
 import '@jest/globals';
+import mongoose from 'mongoose';
 
 // Add any global test setup here
-beforeAll(() => {
-  // Setup code to run before all tests
+beforeAll(async () => {
+  // Connect to test database
+  await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/travel-advisor-test');
 });
 
-afterAll(() => {
-  // Cleanup code to run after all tests
+afterAll(async () => {
+  // Close database connection
+  await mongoose.connection.close();
 }); 
