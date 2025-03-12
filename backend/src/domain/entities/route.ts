@@ -1,8 +1,14 @@
 export class Route {
+  readonly id?: string;
+
   constructor(
-    public readonly departureAirport: string,
-    public readonly arrivalAirport: string
+    readonly departureAirport: string,
+    readonly arrivalAirport: string,
+    id?: string
   ) {
+    if (!departureAirport) throw new Error('Departure airport is required');
+    if (!arrivalAirport) throw new Error('Arrival airport is required');
+    this.id = id;
     this.validate();
   }
 

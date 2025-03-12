@@ -3,7 +3,8 @@ import dotenv from 'dotenv';
 import { FindCompatibleRoutesUseCase } from '../application/use-cases/find-compatible-routes.use-case';
 import { MongoTravelPreferenceRepository } from '../infrastructure/repositories/mongodb/mongo-travel-preference.repository';
 import { MongoRouteRepository } from '../infrastructure/repositories/mongodb/mongo-route.repository';
-import { KiwiClient } from '../infrastructure/clients/kiwi/kiwi.client';
+import { MongoFlightRepository } from '../infrastructure/repositories/mongodb/mongo-flight.repository';
+import { formatDate } from '../utils/date-utils';
 
 // Load environment variables
 dotenv.config();
@@ -18,9 +19,12 @@ async function searchFlights() {
     // Initialize repositories and use case
     const travelPreferenceRepo = new MongoTravelPreferenceRepository();
     const routeRepo = new MongoRouteRepository();
+    const flightRepo = new MongoFlightRepository();
+    
     const findCompatibleRoutes = new FindCompatibleRoutesUseCase(
       travelPreferenceRepo,
-      routeRepo
+      routeRepo,
+      flightRepo
     );
     
     // Find next preference to search and get compatible routes
@@ -30,44 +34,15 @@ async function searchFlights() {
     if (result) {
       console.log(`✅ Found travel preference ID: ${result.preference.id}`);
       console.log(`🛣️ Found ${result.compatibleRoutes.length} compatible routes from ${result.preference.departureCity}`);
+      console.log(`✈️ Found ${result.flights.length} affordable flights within budget (${result.preference.budget} EUR)`);
       
-      // If KIWI_API_KEY is set, we can search for flights
-      if (process.env.KIWI_API_KEY) {
-        try {
-          const kiwiClient = new KiwiClient();
-          console.log('🔎 Searching flights with Kiwi API...');
-          
-          for (const route of result.compatibleRoutes) {
-            // Format dates for the API
-            const dateFrom = formatDate(result.preference.periodFrom);
-            const dateTo = formatDate(result.preference.periodTo);
-            
-            console.log(`🛫 Searching flights from ${route.departureAirport} to ${route.arrivalAirport} (${dateFrom} - ${dateTo})`);
-            
-            try {
-              const searchParams = {
-                flyFrom: route.departureAirport,
-                flyTo: route.arrivalAirport,
-                dateFrom,
-                dateTo,
-                adults: 1,
-                currency: 'EUR'
-              };
-              
-              const flights = await kiwiClient.searchFlights(searchParams);
-              console.log(`✅ Found ${flights.data.length} flights from ${route.departureAirport} to ${route.arrivalAirport}`);
-              
-              // Here you could save the flight results to a database
-              // or perform other actions with the results
-            } catch (error) {
-              console.error(`❌ Error searching flights for route ${route.departureAirport} to ${route.arrivalAirport}:`, error);
-            }
-          }
-        } catch (error) {
-          console.error('❌ Error initializing Kiwi client:', error);
-        }
-      } else {
-        console.log('⚠️ KIWI_API_KEY not set. Skipping flight search.');
+      // Display some stats about the flights found
+      if (result.flights.length > 0) {
+        const cheapestFlight = result.flights.reduce((prev, curr) => 
+          prev.price < curr.price ? prev : curr);
+        
+        console.log(`💰 Cheapest flight: ${cheapestFlight.departureAirport} to ${cheapestFlight.arrivalAirport} for ${cheapestFlight.price} EUR`);
+        console.log(`🔗 Booking link: ${cheapestFlight.deepLink}`);
       }
     } else {
       console.log('⚠️ No travel preferences found to search');
@@ -81,22 +56,5 @@ async function searchFlights() {
   }
 }
 
-// Helper function to format Date objects for the Kiwi API
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
-
-// Execute if run directly
-if (require.main === module) {
-  searchFlights()
-    .then(() => {
-      console.log('✨ Flight search completed');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('❌ Flight search failed:', error);
-      process.exit(1);
-    });
-}
-
-export { searchFlights }; 
+// Run the script
+searchFlights().catch(console.error); 

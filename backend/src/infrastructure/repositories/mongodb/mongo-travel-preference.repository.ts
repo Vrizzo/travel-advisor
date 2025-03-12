@@ -1,118 +1,79 @@
 import { TravelPreference } from '../../../domain/entities/travel-preference';
 import { TravelPreferenceRepository } from '../../../domain/repositories/travel-preference.repository';
-import { TravelPreferenceModel } from './models/travel-preference.model';
+import { TravelPreferenceModel, TravelPreferenceDocument } from './models/travel-preference.model';
 
 export class MongoTravelPreferenceRepository implements TravelPreferenceRepository {
-  async save(travelPreference: TravelPreference): Promise<TravelPreference> {
-    const newTravelPreference = new TravelPreferenceModel({
-      departureCity: travelPreference.departureCity,
-      periodFrom: travelPreference.periodFrom,
-      periodTo: travelPreference.periodTo,
-      budget: travelPreference.budget
+  private documentToEntity(doc: TravelPreferenceDocument): TravelPreference {
+    return new TravelPreference(
+      doc.departureCity,
+      doc.periodFrom,
+      doc.periodTo,
+      doc.budget,
+      doc._id.toString(),
+      doc.lastSearchedAt
+    );
+  }
+
+  async save(preference: TravelPreference): Promise<TravelPreference> {
+    const created = await TravelPreferenceModel.create({
+      departureCity: preference.departureCity,
+      periodFrom: preference.periodFrom,
+      periodTo: preference.periodTo,
+      budget: preference.budget,
+      lastSearchedAt: preference.lastSearchedAt
     });
 
-    await newTravelPreference.save();
-
-    return new TravelPreference(
-      newTravelPreference.departureCity,
-      newTravelPreference.periodFrom,
-      newTravelPreference.periodTo,
-      newTravelPreference.budget,
-      newTravelPreference._id.toString(),
-      newTravelPreference.lastSearchedAt || undefined
-    );
+    return this.documentToEntity(created);
   }
 
   async findAll(): Promise<TravelPreference[]> {
-    const travelPreferences = await TravelPreferenceModel.find();
-    return travelPreferences.map(tp => new TravelPreference(
-      tp.departureCity,
-      tp.periodFrom,
-      tp.periodTo,
-      tp.budget,
-      tp._id.toString(),
-      tp.lastSearchedAt || undefined
-    ));
+    const preferences = await TravelPreferenceModel.find().sort({ createdAt: -1 });
+    return preferences.map(pref => this.documentToEntity(pref));
   }
 
   async findById(id: string): Promise<TravelPreference | null> {
-    const travelPreference = await TravelPreferenceModel.findById(id);
-    if (!travelPreference) return null;
-
-    return new TravelPreference(
-      travelPreference.departureCity,
-      travelPreference.periodFrom,
-      travelPreference.periodTo,
-      travelPreference.budget,
-      travelPreference._id.toString(),
-      travelPreference.lastSearchedAt || undefined
-    );
+    const preference = await TravelPreferenceModel.findById(id);
+    return preference ? this.documentToEntity(preference) : null;
   }
 
   async findNextToSearch(): Promise<TravelPreference | null> {
-    // Find preferences ordered by lastSearchedAt (null first, then oldest)
-    const travelPreference = await TravelPreferenceModel.findOne()
-      .sort({ lastSearchedAt: 1 })
-      .exec();
+    // Find the preference with the oldest lastSearchedAt (or null)
+    const preference = await TravelPreferenceModel
+      .findOne()
+      .sort({ lastSearchedAt: 1, createdAt: 1 })
+      .limit(1);
     
-    if (!travelPreference) return null;
-
-    return new TravelPreference(
-      travelPreference.departureCity,
-      travelPreference.periodFrom,
-      travelPreference.periodTo,
-      travelPreference.budget,
-      travelPreference._id.toString(),
-      travelPreference.lastSearchedAt || undefined
-    );
+    return preference ? this.documentToEntity(preference) : null;
   }
 
-  async update(id: string, travelPreference: TravelPreference): Promise<TravelPreference | null> {
-    const updatedTravelPreference = await TravelPreferenceModel.findByIdAndUpdate(
+  async update(id: string, preference: TravelPreference): Promise<TravelPreference | null> {
+    const updated = await TravelPreferenceModel.findByIdAndUpdate(
       id,
       {
-        departureCity: travelPreference.departureCity,
-        periodFrom: travelPreference.periodFrom,
-        periodTo: travelPreference.periodTo,
-        budget: travelPreference.budget,
-        lastSearchedAt: travelPreference.lastSearchedAt
+        departureCity: preference.departureCity,
+        periodFrom: preference.periodFrom,
+        periodTo: preference.periodTo,
+        budget: preference.budget,
+        lastSearchedAt: preference.lastSearchedAt
       },
       { new: true }
     );
 
-    if (!updatedTravelPreference) return null;
-
-    return new TravelPreference(
-      updatedTravelPreference.departureCity,
-      updatedTravelPreference.periodFrom,
-      updatedTravelPreference.periodTo,
-      updatedTravelPreference.budget,
-      updatedTravelPreference._id.toString(),
-      updatedTravelPreference.lastSearchedAt || undefined
-    );
+    return updated ? this.documentToEntity(updated) : null;
   }
 
   async updateLastSearched(id: string, lastSearchedAt: Date): Promise<TravelPreference | null> {
-    const updatedTravelPreference = await TravelPreferenceModel.findByIdAndUpdate(
+    const updated = await TravelPreferenceModel.findByIdAndUpdate(
       id,
       { lastSearchedAt },
       { new: true }
     );
 
-    if (!updatedTravelPreference) return null;
-
-    return new TravelPreference(
-      updatedTravelPreference.departureCity,
-      updatedTravelPreference.periodFrom,
-      updatedTravelPreference.periodTo,
-      updatedTravelPreference.budget,
-      updatedTravelPreference._id.toString(),
-      updatedTravelPreference.lastSearchedAt || undefined
-    );
+    return updated ? this.documentToEntity(updated) : null;
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await TravelPreferenceModel.findByIdAndDelete(id);
-    return !!result;
+    const result = await TravelPreferenceModel.deleteOne({ _id: id });
+    return result.deletedCount === 1;
   }
 } 

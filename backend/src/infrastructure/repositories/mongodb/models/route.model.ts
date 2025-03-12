@@ -1,11 +1,14 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface RouteDocument extends Document {
+  _id: mongoose.Types.ObjectId;
   departureAirport: string;
   arrivalAirport: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-const routeSchema = new Schema({
+const RouteSchema = new Schema({
   departureAirport: {
     type: String,
     required: true,
@@ -20,9 +23,9 @@ const routeSchema = new Schema({
     maxlength: 3,
     uppercase: true
   }
-});
+}, { timestamps: true });
 
 // Ensure unique combination of departure and arrival airports
-routeSchema.index({ departureAirport: 1, arrivalAirport: 1 }, { unique: true });
+RouteSchema.index({ departureAirport: 1, arrivalAirport: 1 }, { unique: true });
 
-export const RouteModel = mongoose.model<RouteDocument>('Route', routeSchema); 
+export const RouteModel = mongoose.model<RouteDocument>('Route', RouteSchema); 

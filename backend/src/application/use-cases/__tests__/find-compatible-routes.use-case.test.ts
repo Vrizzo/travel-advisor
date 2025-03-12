@@ -5,6 +5,10 @@ import { TravelPreference } from '../../../domain/entities/travel-preference';
 import { Route } from '../../../domain/entities/route';
 import { TravelPreferenceRepository } from '../../../domain/repositories/travel-preference.repository';
 import { RouteRepository } from '../../../domain/repositories/route.repository';
+import { FlightRepository } from '../../../domain/repositories/flight.repository';
+
+// Set NODE_ENV to test to disable the actual KiwiClient initialization
+process.env.NODE_ENV = 'test';
 
 // Mock the global Date
 const mockDate = new Date('2023-01-01T12:00:00.000Z');
@@ -47,9 +51,21 @@ describe('FindCompatibleRoutesUseCase', () => {
     delete: jest.fn()
   } as jest.Mocked<RouteRepository>;
 
+  const mockFlightRepository = {
+    save: jest.fn(),
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    findByTravelPreferenceId: jest.fn(),
+    findByRoute: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    deleteByTravelPreferenceId: jest.fn()
+  } as jest.Mocked<FlightRepository>;
+
   const useCase = new FindCompatibleRoutesUseCase(
     mockTravelPreferenceRepository,
-    mockRouteRepository
+    mockRouteRepository,
+    mockFlightRepository
   );
 
   beforeEach(() => {

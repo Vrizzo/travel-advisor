@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { TravelPreferenceController } from '../controllers/travel-preference.controller';
 import { TravelPreferenceUseCase } from '../../application/use-cases/travel-preference.use-case';
-import { MongoTravelPreferenceRepository } from '../../infrastructure/repositories/mongodb/travel-preference.repository';
+import { MongoTravelPreferenceRepository } from '../../infrastructure/repositories/mongodb/mongo-travel-preference.repository';
 
 export const travelPreferenceRouter = Router();
 

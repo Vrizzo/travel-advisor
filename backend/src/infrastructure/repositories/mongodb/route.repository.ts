@@ -30,8 +30,25 @@ export class MongoRouteRepository implements RouteRepository {
     return route ? this.documentToEntity(route) : null;
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await RouteModel.deleteOne({ _id: id });
-    return result.deletedCount === 1;
+  async findByDepartureAirport(departureAirport: string): Promise<Route[]> {
+    const routes = await RouteModel.find({ departureAirport });
+    return routes.map(route => this.documentToEntity(route));
+  }
+
+  async update(id: string, route: Route): Promise<Route | null> {
+    const updatedRoute = await RouteModel.findByIdAndUpdate(
+      id,
+      {
+        departureAirport: route.departureAirport,
+        arrivalAirport: route.arrivalAirport
+      },
+      { new: true }
+    );
+
+    return updatedRoute ? this.documentToEntity(updatedRoute) : null;
+  }
+
+  async delete(id: string): Promise<void> {
+    await RouteModel.deleteOne({ _id: id });
   }
 } 
