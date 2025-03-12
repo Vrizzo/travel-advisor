@@ -1,21 +1,26 @@
 import '@jest/globals';
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { jest, describe, it, expect, beforeEach, afterAll } from '@jest/globals';
 import { FindCompatibleRoutesUseCase } from '../find-compatible-routes.use-case';
 import { TravelPreference } from '../../../domain/entities/travel-preference';
 import { Route } from '../../../domain/entities/route';
 import { TravelPreferenceRepository } from '../../../domain/repositories/travel-preference.repository';
 import { RouteRepository } from '../../../domain/repositories/route.repository';
 import { FlightRepository } from '../../../domain/repositories/flight.repository';
+import '../../../test/jest.d.ts';
 
 // Set NODE_ENV to test to disable the actual KiwiClient initialization
 process.env.NODE_ENV = 'test';
 
 // Mock the global Date
 const mockDate = new Date('2023-01-01T12:00:00.000Z');
-global.Date = jest.fn(() => mockDate) as any;
-(global.Date as any).now = jest.fn(() => mockDate.getTime());
 
-// Create a real TravelPreference instance instead of typecasting
+// Mock global Date
+jest.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
+// Mock Date.now
+const originalNow = Date.now;
+Date.now = jest.fn(() => mockDate.getTime());
+
+// Create a real TravelPreference instance
 const createMockPreference = (): TravelPreference => {
   const periodFrom = new Date('2023-02-01');
   const periodTo = new Date('2023-02-15');
@@ -31,8 +36,8 @@ describe('FindCompatibleRoutesUseCase', () => {
     new Route('MXP', 'AMS')
   ];
 
-  // Properly type the mocks
-  const mockTravelPreferenceRepository = {
+  // Initialize mocks
+  const mockTravelPreferenceRepository: jest.Mocked<TravelPreferenceRepository> = {
     findById: jest.fn(),
     findNextToSearch: jest.fn(),
     updateLastSearched: jest.fn(),
@@ -40,18 +45,18 @@ describe('FindCompatibleRoutesUseCase', () => {
     save: jest.fn(),
     update: jest.fn(),
     delete: jest.fn()
-  } as jest.Mocked<TravelPreferenceRepository>;
+  };
 
-  const mockRouteRepository = {
+  const mockRouteRepository: jest.Mocked<RouteRepository> = {
     findByDepartureAirport: jest.fn(),
     findAll: jest.fn(),
     findById: jest.fn(),
     save: jest.fn(),
     update: jest.fn(),
     delete: jest.fn()
-  } as jest.Mocked<RouteRepository>;
+  };
 
-  const mockFlightRepository = {
+  const mockFlightRepository: jest.Mocked<FlightRepository> = {
     save: jest.fn(),
     findAll: jest.fn(),
     findById: jest.fn(),
@@ -60,7 +65,7 @@ describe('FindCompatibleRoutesUseCase', () => {
     update: jest.fn(),
     delete: jest.fn(),
     deleteByTravelPreferenceId: jest.fn()
-  } as jest.Mocked<FlightRepository>;
+  };
 
   const useCase = new FindCompatibleRoutesUseCase(
     mockTravelPreferenceRepository,
@@ -72,14 +77,16 @@ describe('FindCompatibleRoutesUseCase', () => {
     jest.clearAllMocks();
     mockTravelPreference = createMockPreference();
     
-    // Set up the mocks
+    // Setup mock implementations
     mockTravelPreferenceRepository.findById.mockResolvedValue(mockTravelPreference);
     mockTravelPreferenceRepository.findNextToSearch.mockResolvedValue(mockTravelPreference);
-    mockTravelPreferenceRepository.updateLastSearched.mockResolvedValue({
-      ...mockTravelPreference,
-      lastSearchedAt: mockDate
-    } as TravelPreference);
+    mockTravelPreferenceRepository.updateLastSearched.mockResolvedValue(mockTravelPreference);
     mockRouteRepository.findByDepartureAirport.mockResolvedValue(mockRoutes);
+  });
+
+  afterAll(() => {
+    // Restore Date.now
+    Date.now = originalNow;
   });
 
   it('should find compatible routes for a travel preference and update lastSearchedAt', async () => {

@@ -5,4 +5,9 @@ module.exports = {
   moduleNameMapper: {
     '^mongoose$': '<rootDir>/src/test/mocks/mongoose.ts',
   },
+  globals: {
+    'ts-jest': {
+      tsconfig: 'tsconfig.test.json'
+    }
+  }
 }; 

@@ -1,60 +1,57 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { connectDB } from '../config/database';
 import { FindCompatibleRoutesUseCase } from '../application/use-cases/find-compatible-routes.use-case';
 import { MongoTravelPreferenceRepository } from '../infrastructure/repositories/mongodb/mongo-travel-preference.repository';
 import { MongoRouteRepository } from '../infrastructure/repositories/mongodb/mongo-route.repository';
 import { MongoFlightRepository } from '../infrastructure/repositories/mongodb/mongo-flight.repository';
-import { formatDate } from '../utils/date-utils';
+import { SearchFlightsUseCase } from '../application/use-cases/search-flights.use-case';
+
+// Function to disconnect from MongoDB
+const disconnectDB = async (): Promise<void> => {
+  try {
+    await mongoose.disconnect();
+    console.log('MongoDB disconnected successfully');
+  } catch (error) {
+    console.error('MongoDB disconnection error:', error);
+  }
+};
 
 // Load environment variables
 dotenv.config();
 
 async function searchFlights() {
   try {
-    // Connect to MongoDB
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/travel-advisor';
-    await mongoose.connect(mongoUri);
-    console.log('📦 Connected to MongoDB');
-
-    // Initialize repositories and use case
-    const travelPreferenceRepo = new MongoTravelPreferenceRepository();
-    const routeRepo = new MongoRouteRepository();
-    const flightRepo = new MongoFlightRepository();
+    // Connect to the database
+    await connectDB();
     
-    const findCompatibleRoutes = new FindCompatibleRoutesUseCase(
-      travelPreferenceRepo,
-      routeRepo,
-      flightRepo
+    // Initialize repositories
+    const travelPreferenceRepository = new MongoTravelPreferenceRepository();
+    const routeRepository = new MongoRouteRepository();
+    const flightRepository = new MongoFlightRepository();
+    
+    // Initialize use case
+    const searchFlightsUseCase = new SearchFlightsUseCase(flightRepository);
+    const findCompatibleRoutesUseCase = new FindCompatibleRoutesUseCase(
+      travelPreferenceRepository,
+      routeRepository,
+      flightRepository,
+      searchFlightsUseCase
     );
+
+    // Execute the search
+    await findCompatibleRoutesUseCase.executeNextSearch();
     
-    // Find next preference to search and get compatible routes
-    console.log('🔍 Finding next travel preference to search...');
-    const result = await findCompatibleRoutes.executeNextSearch();
+    // Disconnect from the database
+    await disconnectDB();
     
-    if (result) {
-      console.log(`✅ Found travel preference ID: ${result.preference.id}`);
-      console.log(`🛣️ Found ${result.compatibleRoutes.length} compatible routes from ${result.preference.departureCity}`);
-      console.log(`✈️ Found ${result.flights.length} affordable flights within budget (${result.preference.budget} EUR)`);
-      
-      // Display some stats about the flights found
-      if (result.flights.length > 0) {
-        const cheapestFlight = result.flights.reduce((prev, curr) => 
-          prev.price < curr.price ? prev : curr);
-        
-        console.log(`💰 Cheapest flight: ${cheapestFlight.departureAirport} to ${cheapestFlight.arrivalAirport} for ${cheapestFlight.price} EUR`);
-        console.log(`🔗 Booking link: ${cheapestFlight.deepLink}`);
-      }
-    } else {
-      console.log('⚠️ No travel preferences found to search');
-    }
+    console.log('Flight search completed successfully');
   } catch (error) {
-    console.error('❌ Error searching flights:', error);
-  } finally {
-    // Close the MongoDB connection
-    await mongoose.connection.close();
-    console.log('📦 Disconnected from MongoDB');
+    console.error('Error searching for flights:', error);
+    await disconnectDB();
+    process.exit(1);
   }
 }
 
-// Run the script
-searchFlights().catch(console.error); 
+// Run the search
+searchFlights(); 
