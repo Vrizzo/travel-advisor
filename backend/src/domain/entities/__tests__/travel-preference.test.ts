@@ -1,32 +1,30 @@
-import { describe, expect, it } from '@jest/globals';
+import '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 import { TravelPreference } from '../travel-preference';
 
 describe('TravelPreference', () => {
   const validPreference = {
-    departureCity: 'New York',
-    periodFrom: '2024-05-01',
-    periodTo: '2024-05-10',
-    budget: 5000,
-    id: '123'
+    departureCity: 'MXP',
+    periodFrom: new Date('2023-01-01'),
+    periodTo: new Date('2023-01-10'),
+    budget: 1000
   };
 
   it('should create a valid travel preference', () => {
-    const preference = new TravelPreference(
+    const travelPreference = new TravelPreference(
       validPreference.departureCity,
       validPreference.periodFrom,
       validPreference.periodTo,
-      validPreference.budget,
-      validPreference.id
+      validPreference.budget
     );
 
-    expect(preference.departureCity).toBe(validPreference.departureCity);
-    expect(preference.periodFrom).toBe(validPreference.periodFrom);
-    expect(preference.periodTo).toBe(validPreference.periodTo);
-    expect(preference.budget).toBe(validPreference.budget);
-    expect(preference.id).toBe(validPreference.id);
+    expect(travelPreference.departureCity).toBe(validPreference.departureCity);
+    expect(travelPreference.periodFrom).toEqual(validPreference.periodFrom);
+    expect(travelPreference.periodTo).toEqual(validPreference.periodTo);
+    expect(travelPreference.budget).toBe(validPreference.budget);
   });
 
-  it('should throw error when departure city is empty', () => {
+  it('should throw error when departure city is missing', () => {
     expect(() => {
       new TravelPreference(
         '',
@@ -37,26 +35,37 @@ describe('TravelPreference', () => {
     }).toThrow('Departure city is required');
   });
 
-  it('should throw error when period from is invalid', () => {
+  it('should throw error when period from date is missing', () => {
     expect(() => {
       new TravelPreference(
         validPreference.departureCity,
-        'invalid-date',
+        null as any,
         validPreference.periodTo,
         validPreference.budget
       );
-    }).toThrow('Period from must be a valid date in YYYY-MM-DD format');
+    }).toThrow('Period from date is required');
   });
 
-  it('should throw error when period to is invalid', () => {
+  it('should throw error when period to date is missing', () => {
     expect(() => {
       new TravelPreference(
         validPreference.departureCity,
         validPreference.periodFrom,
-        'invalid-date',
+        null as any,
         validPreference.budget
       );
-    }).toThrow('Period to must be a valid date in YYYY-MM-DD format');
+    }).toThrow('Period to date is required');
+  });
+
+  it('should throw error when period from is after period to', () => {
+    expect(() => {
+      new TravelPreference(
+        validPreference.departureCity,
+        new Date('2023-01-15'),
+        new Date('2023-01-10'),
+        validPreference.budget
+      );
+    }).toThrow('Period from date must be before period to date');
   });
 
   it('should throw error when budget is negative', () => {
@@ -67,6 +76,6 @@ describe('TravelPreference', () => {
         validPreference.periodTo,
         -100
       );
-    }).toThrow('Budget must be a positive number');
+    }).toThrow('Budget must be greater than zero');
   });
 }); 

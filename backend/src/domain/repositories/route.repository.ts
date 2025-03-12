@@ -4,5 +4,7 @@ export interface RouteRepository {
   save(route: Route): Promise<Route>;
   findAll(): Promise<Route[]>;
   findById(id: string): Promise<Route | null>;
-  delete(id: string): Promise<boolean>;
+  findByDepartureAirport(departureAirport: string): Promise<Route[]>;
+  update(id: string, route: Route): Promise<Route | null>;
+  delete(id: string): Promise<void>;
 } 

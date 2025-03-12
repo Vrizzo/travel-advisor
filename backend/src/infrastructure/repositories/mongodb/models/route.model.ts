@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface RouteDocument extends Document {
-  _id: mongoose.Types.ObjectId;
   departureAirport: string;
   arrivalAirport: string;
 }
@@ -9,16 +8,18 @@ export interface RouteDocument extends Document {
 const routeSchema = new Schema({
   departureAirport: {
     type: String,
-    required: [true, 'Departure airport is required'],
+    required: true,
+    minlength: 3,
+    maxlength: 3,
     uppercase: true
   },
   arrivalAirport: {
     type: String,
-    required: [true, 'Arrival airport is required'],
+    required: true,
+    minlength: 3,
+    maxlength: 3,
     uppercase: true
   }
-}, {
-  timestamps: true
 });
 
 // Ensure unique combination of departure and arrival airports

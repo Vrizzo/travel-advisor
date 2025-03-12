@@ -4,47 +4,55 @@ import { TravelPreferenceRepository } from '../../domain/repositories/travel-pre
 export class TravelPreferenceUseCase {
   constructor(private readonly repository: TravelPreferenceRepository) {}
 
-  async createTravelPreference(
+  async create(
     departureCity: string,
-    periodFrom: string,
-    periodTo: string,
+    periodFrom: Date,
+    periodTo: Date,
     budget: number
   ): Promise<TravelPreference> {
-    const preference = new TravelPreference(
-      departureCity,
-      periodFrom,
-      periodTo,
-      budget
-    );
-    return this.repository.save(preference);
+    try {
+      const preference = new TravelPreference(
+        departureCity,
+        periodFrom,
+        periodTo,
+        budget
+      );
+      return await this.repository.save(preference);
+    } catch (error) {
+      throw error;
+    }
   }
 
-  async getAllTravelPreferences(): Promise<TravelPreference[]> {
+  async getAll(): Promise<TravelPreference[]> {
     return this.repository.findAll();
   }
 
-  async getTravelPreferenceById(id: string): Promise<TravelPreference | null> {
+  async getById(id: string): Promise<TravelPreference | null> {
     return this.repository.findById(id);
   }
 
-  async updateTravelPreference(
+  async update(
     id: string,
     departureCity: string,
-    periodFrom: string,
-    periodTo: string,
+    periodFrom: Date,
+    periodTo: Date,
     budget: number
   ): Promise<TravelPreference | null> {
-    const preference = new TravelPreference(
-      departureCity,
-      periodFrom,
-      periodTo,
-      budget,
-      id
-    );
-    return this.repository.update(id, preference);
+    try {
+      const preference = new TravelPreference(
+        departureCity,
+        periodFrom,
+        periodTo,
+        budget,
+        id
+      );
+      return await this.repository.update(id, preference);
+    } catch (error) {
+      throw error;
+    }
   }
 
-  async deleteTravelPreference(id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     return this.repository.delete(id);
   }
 } 

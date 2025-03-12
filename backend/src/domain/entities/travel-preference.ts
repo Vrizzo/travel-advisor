@@ -1,42 +1,47 @@
 export class TravelPreference {
+  id?: string;
+  departureCity: string;
+  periodFrom: Date;
+  periodTo: Date;
+  budget: number;
+  lastSearchedAt?: Date;
+
   constructor(
-    public readonly departureCity: string,
-    public readonly periodFrom: string,
-    public readonly periodTo: string,
-    public readonly budget: number,
-    public readonly id?: string
+    departureCity: string,
+    periodFrom: Date,
+    periodTo: Date,
+    budget: number,
+    id?: string,
+    lastSearchedAt?: Date
   ) {
+    this.departureCity = departureCity;
+    this.periodFrom = periodFrom;
+    this.periodTo = periodTo;
+    this.budget = budget;
+    this.id = id;
+    this.lastSearchedAt = lastSearchedAt;
     this.validate();
   }
 
   private validate(): void {
-    const errors: string[] = [];
-
     if (!this.departureCity) {
-      errors.push('Departure city is required');
+      throw new Error('Departure city is required');
     }
 
-    if (!this.isValidDate(this.periodFrom)) {
-      errors.push('Period from must be a valid date in YYYY-MM-DD format');
+    if (!this.periodFrom) {
+      throw new Error('Period from date is required');
     }
 
-    if (!this.isValidDate(this.periodTo)) {
-      errors.push('Period to must be a valid date in YYYY-MM-DD format');
+    if (!this.periodTo) {
+      throw new Error('Period to date is required');
     }
 
-    if (this.budget <= 0) {
-      errors.push('Budget must be a positive number');
+    if (this.periodFrom > this.periodTo) {
+      throw new Error('Period from date must be before period to date');
     }
 
-    if (errors.length > 0) {
-      throw new Error(errors.join(', '));
+    if (!this.budget || this.budget <= 0) {
+      throw new Error('Budget must be greater than zero');
     }
-  }
-
-  private isValidDate(date: string): boolean {
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regex.test(date)) return false;
-    const d = new Date(date);
-    return d instanceof Date && !isNaN(d.getTime());
   }
 } 

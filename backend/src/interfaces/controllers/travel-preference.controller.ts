@@ -2,73 +2,43 @@ import { Request, Response } from 'express';
 import { TravelPreferenceUseCase } from '../../application/use-cases/travel-preference.use-case';
 
 export class TravelPreferenceController {
-  constructor(private readonly useCase: TravelPreferenceUseCase) {}
+  constructor(private readonly travelPreferenceUseCase: TravelPreferenceUseCase) {}
 
   async create(req: Request, res: Response): Promise<void> {
     try {
       const { departureCity, periodFrom, periodTo, budget } = req.body;
-      const preference = await this.useCase.createTravelPreference(
+      const preference = await this.travelPreferenceUseCase.create(
         departureCity,
-        periodFrom,
-        periodTo,
+        new Date(periodFrom),
+        new Date(periodTo),
         budget
       );
-      res.status(201).json({
-        success: true,
-        data: preference
-      });
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({
-          success: false,
-          error: error.message
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: 'Internal server error'
-        });
-      }
+      res.status(201).json(preference);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || 'Failed to create travel preference' });
     }
   }
 
   async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const preferences = await this.useCase.getAllTravelPreferences();
-      res.status(200).json({
-        success: true,
-        data: preferences
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error'
-      });
+      const preferences = await this.travelPreferenceUseCase.getAll();
+      res.status(200).json(preferences);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || 'Failed to get travel preferences' });
     }
   }
 
   async getById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const preference = await this.useCase.getTravelPreferenceById(id);
-      
+      const preference = await this.travelPreferenceUseCase.getById(id);
       if (!preference) {
-        res.status(404).json({
-          success: false,
-          error: 'Travel preference not found'
-        });
+        res.status(404).json({ error: 'Travel preference not found' });
         return;
       }
-
-      res.status(200).json({
-        success: true,
-        data: preference
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error'
-      });
+      res.status(200).json(preference);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || 'Failed to get travel preference' });
     }
   }
 
@@ -76,61 +46,34 @@ export class TravelPreferenceController {
     try {
       const { id } = req.params;
       const { departureCity, periodFrom, periodTo, budget } = req.body;
-      
-      const preference = await this.useCase.updateTravelPreference(
+      const preference = await this.travelPreferenceUseCase.update(
         id,
         departureCity,
-        periodFrom,
-        periodTo,
+        new Date(periodFrom),
+        new Date(periodTo),
         budget
       );
-
       if (!preference) {
-        res.status(404).json({
-          success: false,
-          error: 'Travel preference not found'
-        });
+        res.status(404).json({ error: 'Travel preference not found' });
         return;
       }
-
-      res.status(200).json({
-        success: true,
-        data: preference
-      });
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({
-          success: false,
-          error: error.message
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: 'Internal server error'
-        });
-      }
+      res.status(200).json(preference);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || 'Failed to update travel preference' });
     }
   }
 
   async delete(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const deleted = await this.useCase.deleteTravelPreference(id);
-
-      if (!deleted) {
-        res.status(404).json({
-          success: false,
-          error: 'Travel preference not found'
-        });
+      const success = await this.travelPreferenceUseCase.delete(id);
+      if (!success) {
+        res.status(404).json({ error: 'Travel preference not found' });
         return;
       }
-
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error'
-      });
+      res.sendStatus(204);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || 'Failed to delete travel preference' });
     }
   }
 } 
