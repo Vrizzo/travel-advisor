@@ -35,7 +35,6 @@ async function searchFlights() {
     const findCompatibleRoutesUseCase = new FindCompatibleRoutesUseCase(
       travelPreferenceRepository,
       routeRepository,
-      flightRepository,
       searchFlightsUseCase
     );
 

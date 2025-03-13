@@ -3,20 +3,16 @@ import { Route } from '../../domain/entities/route';
 import { Flight } from '../../domain/entities/flight';
 import { TravelPreferenceRepository } from '../../domain/repositories/travel-preference.repository';
 import { RouteRepository } from '../../domain/repositories/route.repository';
-import { FlightRepository } from '../../domain/repositories/flight.repository';
 import { SearchFlightsUseCase } from './search-flights.use-case';
 
 export class FindCompatibleRoutesUseCase {
-  protected readonly searchFlightsUseCase: SearchFlightsUseCase;
+
 
   constructor(
     private readonly travelPreferenceRepository: TravelPreferenceRepository,
     private readonly routeRepository: RouteRepository,
-    private readonly flightRepository: FlightRepository,
-    searchFlightsUseCase?: SearchFlightsUseCase
-  ) {
-    this.searchFlightsUseCase = searchFlightsUseCase || new SearchFlightsUseCase(flightRepository);
-  }
+    private readonly  searchFlightsUseCase: SearchFlightsUseCase
+  ) {}
 
   async execute(preferenceId: string): Promise<{ preference: TravelPreference; compatibleRoutes: Route[]; flights: Flight[] }> {
     // Get travel preference

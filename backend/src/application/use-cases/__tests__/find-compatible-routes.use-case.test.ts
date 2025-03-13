@@ -7,6 +7,7 @@ import { TravelPreferenceRepository } from '../../../domain/repositories/travel-
 import { RouteRepository } from '../../../domain/repositories/route.repository';
 import { FlightRepository } from '../../../domain/repositories/flight.repository';
 import '../../../test/jest.d.ts';
+import {SearchFlightsUseCase} from "../search-flights.use-case";
 
 // Set NODE_ENV to test to disable the actual KiwiClient initialization
 process.env.NODE_ENV = 'test';
@@ -70,7 +71,7 @@ describe('FindCompatibleRoutesUseCase', () => {
   const useCase = new FindCompatibleRoutesUseCase(
     mockTravelPreferenceRepository,
     mockRouteRepository,
-    mockFlightRepository
+    new SearchFlightsUseCase(mockFlightRepository)
   );
 
   beforeEach(() => {
