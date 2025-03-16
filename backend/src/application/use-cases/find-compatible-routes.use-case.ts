@@ -42,29 +42,6 @@ export class FindCompatibleRoutesUseCase {
       try {
         console.log(`🔍 Searching for flights for travel preference ${preferenceId}`);
         flights = await this.searchFlightsUseCase.searchAndSaveFlights(preference, compatibleRoutes);
-        
-        // In test environment, flights will be empty. Let's create some mock flights for easier testing
-        if (process.env.NODE_ENV === 'test' && flights.length === 0) {
-          console.log('Test mode: Using mock flights for testing');
-          
-          // Add some mock flights to existing array for testing
-          if (compatibleRoutes.length > 0) {
-            const mockDate = new Date();
-            flights = compatibleRoutes.map(route => {
-              return new Flight(
-                route.departureAirport,
-                route.arrivalAirport,
-                mockDate,
-                new Date(mockDate.getTime() + 3 * 60 * 60 * 1000), // 3 hours later
-                Math.floor(Math.random() * 500) + 100, // Random price between 100-600
-                'TEST',
-                'https://example.com/booking',
-                preferenceId
-              );
-            });
-          }
-        }
-        
         console.log(`✅ Found and saved ${flights.length} affordable flights`);
       } catch (error) {
         console.error(`❌ Error searching for flights: ${error instanceof Error ? error.message : String(error)}`);
@@ -92,5 +69,22 @@ export class FindCompatibleRoutesUseCase {
     }
 
     return this.execute(nextPreference.id!);
+  }
+  
+  // Helper method explicitly for testing - used in test files instead of environment checks
+  createMockFlights(compatibleRoutes: Route[], preferenceId: string): Flight[] {
+    const mockDate = new Date();
+    return compatibleRoutes.map(route => {
+      return new Flight(
+        route.departureAirport,
+        route.arrivalAirport,
+        mockDate,
+        new Date(mockDate.getTime() + 3 * 60 * 60 * 1000), // 3 hours later
+        Math.floor(Math.random() * 500) + 100, // Random price between 100-600
+        'TEST',
+        'https://example.com/booking',
+        preferenceId
+      );
+    });
   }
 } 

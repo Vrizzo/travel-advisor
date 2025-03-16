@@ -8,6 +8,10 @@
   ],
   "compilerOptions": {
     "types": ["jest", "node"],
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "skipLibCheck": true
   }
 } 

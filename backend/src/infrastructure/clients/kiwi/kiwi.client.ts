@@ -1,56 +1,65 @@
 import axios from 'axios';
 
-interface FlightSearchParams {
+export interface FlightSearchParams {
   flyFrom: string;
   flyTo: string;
   dateFrom: string;
   dateTo: string;
   adults: number;
-  currency?: string;
+  currency: string;
 }
 
-interface Flight {
+export interface Flight {
   flyFrom: string;
   flyTo: string;
+  local_departure: string;
+  local_arrival: string;
   price: number;
   airlines: string[];
   deep_link: string;
-  local_arrival: string;
-  local_departure: string;
 }
 
-interface FlightSearchResponse {
+export interface FlightSearchResponse {
   data: Flight[];
 }
 
 export class KiwiClient {
-  private readonly baseUrl = 'https://tequila.kiwi.com';
   private readonly apiKey: string;
 
-  constructor() {
-    const apiKey = process.env.KIWI_API_KEY;
-    if (!apiKey) {
-      throw new Error('KIWI_API_KEY environment variable is not set');
+  constructor(apiKey?: string) {
+    this.apiKey = apiKey || process.env.KIWI_API_KEY || '';
+    
+    if (!this.apiKey) {
+      throw new Error('KIWI_API_KEY environment variable is not set or API key not provided');
     }
-    this.apiKey = apiKey;
   }
 
   async searchFlights(params: FlightSearchParams): Promise<FlightSearchResponse> {
     try {
-      const response = await axios.get(`${this.baseUrl}/v2/search`, {
+      const response = await axios.get('https://tequila.kiwi.com/v2/search', {
         headers: {
           'apikey': this.apiKey
         },
         params: {
-          ...params,
-          curr: params.currency || 'EUR'
+          fly_from: params.flyFrom,
+          fly_to: params.flyTo,
+          date_from: params.dateFrom,
+          date_to: params.dateTo,
+          adults: params.adults,
+          curr: params.currency,
+          partner: 'traveladvisor',
+          limit: 10
         }
       });
 
-      return response.data;
+      return {
+        data: response.data.data
+      };
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(`Kiwi API error: ${error.response?.data?.message || error.message}`);
+        console.error('Axios error:', error.response?.data || error.message);
+      } else {
+        console.error('Unexpected error:', error);
       }
       throw error;
     }

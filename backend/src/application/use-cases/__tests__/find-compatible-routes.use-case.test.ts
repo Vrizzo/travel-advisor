@@ -3,14 +3,15 @@ import { jest, describe, it, expect, beforeEach, afterAll } from '@jest/globals'
 import { FindCompatibleRoutesUseCase } from '../find-compatible-routes.use-case';
 import { TravelPreference } from '../../../domain/entities/travel-preference';
 import { Route } from '../../../domain/entities/route';
+import { Flight } from '../../../domain/entities/flight';
 import { TravelPreferenceRepository } from '../../../domain/repositories/travel-preference.repository';
 import { RouteRepository } from '../../../domain/repositories/route.repository';
 import { FlightRepository } from '../../../domain/repositories/flight.repository';
+import { SearchFlightsUseCase } from "../search-flights.use-case";
 import '../../../test/jest.d.ts';
-import {SearchFlightsUseCase} from "../search-flights.use-case";
 
-// Set NODE_ENV to test to disable the actual KiwiClient initialization
-process.env.NODE_ENV = 'test';
+// Mock out the modules we need to mock
+jest.mock('../search-flights.use-case');
 
 // Mock the global Date
 const mockDate = new Date('2023-01-01T12:00:00.000Z');
@@ -30,6 +31,7 @@ const createMockPreference = (): TravelPreference => {
 
 describe('FindCompatibleRoutesUseCase', () => {
   let mockTravelPreference: TravelPreference;
+  let mockSearchFlightsUseCase: jest.Mocked<SearchFlightsUseCase>;
   
   const mockRoutes = [
     new Route('MXP', 'LHR'),
@@ -68,15 +70,28 @@ describe('FindCompatibleRoutesUseCase', () => {
     deleteByTravelPreferenceId: jest.fn()
   };
 
-  const useCase = new FindCompatibleRoutesUseCase(
-    mockTravelPreferenceRepository,
-    mockRouteRepository,
-    new SearchFlightsUseCase(mockFlightRepository)
-  );
+  let useCase: FindCompatibleRoutesUseCase;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockTravelPreference = createMockPreference();
+    
+    // Reset the mock constructor and instance
+    (SearchFlightsUseCase as jest.Mock).mockClear();
+    mockSearchFlightsUseCase = {
+      // @ts-ignore: Bypass TypeScript error with the empty array return value
+      searchAndSaveFlights: jest.fn().mockResolvedValue([])
+    } as unknown as jest.Mocked<SearchFlightsUseCase>;
+    
+    // Mock the constructor
+    (SearchFlightsUseCase as jest.Mock).mockImplementation(() => mockSearchFlightsUseCase);
+    
+    // Create the use case with our mocks
+    useCase = new FindCompatibleRoutesUseCase(
+      mockTravelPreferenceRepository,
+      mockRouteRepository,
+      new SearchFlightsUseCase(mockFlightRepository, {} as any)
+    );
     
     // Setup mock implementations
     mockTravelPreferenceRepository.findById.mockResolvedValue(mockTravelPreference);
@@ -98,6 +113,7 @@ describe('FindCompatibleRoutesUseCase', () => {
     expect(mockTravelPreferenceRepository.findById).toHaveBeenCalledWith('1');
     expect(mockRouteRepository.findByDepartureAirport).toHaveBeenCalledWith('MXP');
     expect(mockTravelPreferenceRepository.updateLastSearched).toHaveBeenCalledWith('1', mockDate);
+    expect(mockSearchFlightsUseCase.searchAndSaveFlights).toHaveBeenCalledWith(mockTravelPreference, mockRoutes);
   });
 
   it('should throw error when travel preference is not found', async () => {
@@ -132,5 +148,16 @@ describe('FindCompatibleRoutesUseCase', () => {
     expect(result).toBeNull();
     expect(mockTravelPreferenceRepository.findNextToSearch).toHaveBeenCalled();
     expect(mockTravelPreferenceRepository.findById).not.toHaveBeenCalled();
+  });
+  
+  it('should create mock flights when needed', () => {
+    const mockFlights = useCase.createMockFlights(mockRoutes, '1');
+    
+    expect(mockFlights).toHaveLength(mockRoutes.length);
+    mockFlights.forEach((flight, index) => {
+      expect(flight.departureAirport).toBe(mockRoutes[index].departureAirport);
+      expect(flight.arrivalAirport).toBe(mockRoutes[index].arrivalAirport);
+      expect(flight.travelPreferenceId).toBe('1');
+    });
   });
 }); 

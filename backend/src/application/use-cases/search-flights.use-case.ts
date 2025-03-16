@@ -6,26 +6,14 @@ import { KiwiClient } from '../../infrastructure/clients/kiwi/kiwi.client';
 import { formatDate } from '../../utils/date-utils';
 
 export class SearchFlightsUseCase {
-  private readonly kiwiClient?: KiwiClient;
 
   constructor(
-    private readonly flightRepository: FlightRepository
-  ) {
-    // Initialize the Kiwi client only in non-test environments
-    if (process.env.NODE_ENV !== 'test') {
-      this.kiwiClient = new KiwiClient();
-    }
-  }
+    private readonly flightRepository: FlightRepository,
+    private readonly kiwiClient: KiwiClient) {}
 
   async searchAndSaveFlights(preference: TravelPreference, compatibleRoutes: Route[]): Promise<Flight[]> {
     // Delete existing flights for this preference to avoid duplicates
     await this.flightRepository.deleteByTravelPreferenceId(preference.id!);
-    
-    // If we're in test mode, return empty array
-    if (process.env.NODE_ENV === 'test') {
-      console.log('Test mode: skipping real flight search');
-      return [];
-    }
     
     if (!this.kiwiClient) {
       throw new Error('KiwiClient not initialized');

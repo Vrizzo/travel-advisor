@@ -2,18 +2,16 @@ import '@jest/globals';
 import { KiwiClient } from '../kiwi.client';
 import axios from 'axios';
 
-// Mock environment variables
-process.env.KIWI_API_KEY = 'test-api-key';
-
 // Mock axios
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('KiwiClient', () => {
   let kiwiClient: KiwiClient;
+  const testApiKey = 'test-api-key';
 
   beforeEach(() => {
-    kiwiClient = new KiwiClient();
+    kiwiClient = new KiwiClient(testApiKey);
     jest.clearAllMocks();
   });
 
@@ -60,8 +58,8 @@ describe('KiwiClient', () => {
           'apikey': 'test-api-key'
         },
         params: expect.objectContaining({
-          flyFrom: 'MXP',
-          flyTo: 'LHR',
+          fly_from: 'MXP',
+          fly_to: 'LHR',
           adults: 1,
           curr: 'EUR'
         })
@@ -69,15 +67,30 @@ describe('KiwiClient', () => {
     );
   });
 
-  it('should throw error when API key is not set', () => {
-    // Temporarily remove the API key
+  it('should throw error when no API key is available', () => {
+    // Save original env var
     const originalApiKey = process.env.KIWI_API_KEY;
+    // Remove env var
     delete process.env.KIWI_API_KEY;
-
-    // Attempt to create client should throw error
-    expect(() => new KiwiClient()).toThrow('KIWI_API_KEY environment variable is not set');
-
-    // Restore the API key
+    
+    // Now attempting to create a client with no key should throw
+    expect(() => new KiwiClient()).toThrow('KIWI_API_KEY environment variable is not set or API key not provided');
+    
+    // Restore env var
     process.env.KIWI_API_KEY = originalApiKey;
+  });
+  
+  it('should use environment variable as fallback', () => {
+    // Set environment variable
+    process.env.KIWI_API_KEY = 'env-api-key';
+    
+    // Create client without explicit key
+    const client = new KiwiClient();
+    
+    // Verify client is created successfully
+    expect(client).toBeDefined();
+    
+    // Reset environment
+    delete process.env.KIWI_API_KEY;
   });
 }); 
