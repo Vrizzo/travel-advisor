@@ -30,8 +30,10 @@ const createMockPreference = (): TravelPreference => {
 };
 
 describe('FindCompatibleRoutesUseCase', () => {
+  // Arrange - Test setup variables
   let mockTravelPreference: TravelPreference;
   let mockSearchFlightsUseCase: jest.Mocked<SearchFlightsUseCase>;
+  let useCase: FindCompatibleRoutesUseCase;
   
   const mockRoutes = [
     new Route('MXP', 'LHR'),
@@ -39,7 +41,7 @@ describe('FindCompatibleRoutesUseCase', () => {
     new Route('MXP', 'AMS')
   ];
 
-  // Initialize mocks
+  // Initialize repository mocks
   const mockTravelPreferenceRepository: jest.Mocked<TravelPreferenceRepository> = {
     findById: jest.fn(),
     findNextToSearch: jest.fn(),
@@ -70,9 +72,9 @@ describe('FindCompatibleRoutesUseCase', () => {
     deleteByTravelPreferenceId: jest.fn()
   };
 
-  let useCase: FindCompatibleRoutesUseCase;
-
+  // Common setup before each test
   beforeEach(() => {
+    // Arrange - Reset state and create fresh instances
     jest.clearAllMocks();
     mockTravelPreference = createMockPreference();
     
@@ -93,23 +95,29 @@ describe('FindCompatibleRoutesUseCase', () => {
       new SearchFlightsUseCase(mockFlightRepository, {} as any)
     );
     
-    // Setup mock implementations
+    // Setup common mock implementations
     mockTravelPreferenceRepository.findById.mockResolvedValue(mockTravelPreference);
     mockTravelPreferenceRepository.findNextToSearch.mockResolvedValue(mockTravelPreference);
     mockTravelPreferenceRepository.updateLastSearched.mockResolvedValue(mockTravelPreference);
     mockRouteRepository.findByDepartureAirport.mockResolvedValue(mockRoutes);
   });
 
+  // Cleanup after all tests
   afterAll(() => {
-    // Restore Date.now
+    // Restore original Date.now
     Date.now = originalNow;
   });
 
   it('should find compatible routes for a travel preference and update lastSearchedAt', async () => {
+    // Act - Execute the method being tested
     const result = await useCase.execute('1');
 
+    // Assert - Verify the results
+    // Check returned values
     expect(result.preference).toBe(mockTravelPreference);
     expect(result.compatibleRoutes).toEqual(mockRoutes);
+    
+    // Verify correct repository methods were called with right parameters
     expect(mockTravelPreferenceRepository.findById).toHaveBeenCalledWith('1');
     expect(mockRouteRepository.findByDepartureAirport).toHaveBeenCalledWith('MXP');
     expect(mockTravelPreferenceRepository.updateLastSearched).toHaveBeenCalledWith('1', mockDate);
@@ -117,23 +125,32 @@ describe('FindCompatibleRoutesUseCase', () => {
   });
 
   it('should throw error when travel preference is not found', async () => {
+    // Arrange - Override the mock to return null for this test only
     mockTravelPreferenceRepository.findById.mockResolvedValueOnce(null);
 
+    // Act & Assert - Execute and verify exception is thrown
     await expect(useCase.execute('1')).rejects.toThrow('Travel preference with id 1 not found');
   });
 
   it('should find the next preference to search', async () => {
+    // Act - Execute the method being tested
     const result = await useCase.findNextPreferenceToSearch();
 
+    // Assert - Verify the results
     expect(result).toBe(mockTravelPreference);
     expect(mockTravelPreferenceRepository.findNextToSearch).toHaveBeenCalled();
   });
 
   it('should execute search for the next preference', async () => {
+    // Act - Execute the method being tested
     const result = await useCase.executeNextSearch();
 
+    // Assert - Verify the results
+    // Check returned values
     expect(result!.preference).toBe(mockTravelPreference);
     expect(result!.compatibleRoutes).toEqual(mockRoutes);
+    
+    // Verify repository interactions
     expect(mockTravelPreferenceRepository.findNextToSearch).toHaveBeenCalled();
     expect(mockTravelPreferenceRepository.findById).toHaveBeenCalledWith('1');
     expect(mockRouteRepository.findByDepartureAirport).toHaveBeenCalledWith('MXP');
@@ -141,19 +158,26 @@ describe('FindCompatibleRoutesUseCase', () => {
   });
 
   it('should return null when there are no preferences to search', async () => {
+    // Arrange - Override the mock to return null for this test only
     mockTravelPreferenceRepository.findNextToSearch.mockResolvedValueOnce(null);
 
+    // Act - Execute the method being tested
     const result = await useCase.executeNextSearch();
 
+    // Assert - Verify the results
     expect(result).toBeNull();
     expect(mockTravelPreferenceRepository.findNextToSearch).toHaveBeenCalled();
     expect(mockTravelPreferenceRepository.findById).not.toHaveBeenCalled();
   });
   
   it('should create mock flights when needed', () => {
+    // Act - Execute the method being tested
     const mockFlights = useCase.createMockFlights(mockRoutes, '1');
     
+    // Assert - Verify the results
     expect(mockFlights).toHaveLength(mockRoutes.length);
+    
+    // Verify properties of each flight
     mockFlights.forEach((flight, index) => {
       expect(flight.departureAirport).toBe(mockRoutes[index].departureAirport);
       expect(flight.arrivalAirport).toBe(mockRoutes[index].arrivalAirport);
