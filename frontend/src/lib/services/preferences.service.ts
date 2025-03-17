@@ -27,22 +27,18 @@ const mockPreferences: TravelPreference[] = [
   }
 ];
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export class PreferencesService {
   static async getAll(): Promise<TravelPreference[]> {
-    // In a real application, this would call the API
-    // For now, return mock data
+
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Uncomment this when the backend API is ready
-      // const response = await fetch(`${API_BASE_URL}/travel-preferences`);
-      // if (!response.ok) {
-      //   throw new Error('Failed to fetch preferences');
-      // }
-      // return response.json();
+
+      const response = await fetch(`${API_BASE_URL}/travel-preferences`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch preferences');
+      }
+      return response.json();
       
       return [...mockPreferences];
     } catch (error) {
@@ -76,21 +72,18 @@ export class PreferencesService {
 
   static async create(preference: Omit<TravelPreference, 'id'>): Promise<TravelPreference> {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 700));
-      
-      // Uncomment this when the backend API is ready
-      // const response = await fetch(`${API_BASE_URL}/travel-preferences`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(preference),
-      // });
-      // if (!response.ok) {
-      //   throw new Error('Failed to create preference');
-      // }
-      // return response.json();
+   
+      const response = await fetch(`${API_BASE_URL}/travel-preferences`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(preference),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to create preference');
+      }
+      return response.json();
       
       // Create a new mock preference with a random ID
       const newPreference: TravelPreference = {
@@ -113,20 +106,19 @@ export class PreferencesService {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 600));
       
-      // Uncomment this when the backend API is ready
-      // const response = await fetch(`${API_BASE_URL}/travel-preferences/${id}`, {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(preference),
-      // });
-      // if (!response.ok) {
-      //   throw new Error('Failed to update preference');
-      // }
-      // return response.json();
+      const response = await fetch(`${API_BASE_URL}/travel-preferences/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(preference),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update preference');
+      }
+      return response.json();
       
-      // Find and update the preference in our mock data
+
       const index = mockPreferences.findIndex(p => p.id === id);
       if (index === -1) {
         throw new Error('Preference not found');
@@ -149,13 +141,12 @@ export class PreferencesService {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Uncomment this when the backend API is ready
-      // const response = await fetch(`${API_BASE_URL}/travel-preferences/${id}`, {
-      //   method: 'DELETE',
-      // });
-      // if (!response.ok) {
-      //   throw new Error('Failed to delete preference');
-      // }
+      const response = await fetch(`${API_BASE_URL}/travel-preferences/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete preference');
+      }
       
       // Remove from mock data (in a real app, this would be handled by the backend)
       const index = mockPreferences.findIndex(p => p.id === id);

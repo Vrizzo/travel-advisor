@@ -36,7 +36,8 @@ export class KiwiClient {
 
   async searchFlights(params: FlightSearchParams): Promise<FlightSearchResponse> {
     try {
-      const response = await axios.get('https://tequila.kiwi.com/v2/search', {
+      console.log('searchFlights from:', params.flyFrom, 'to:', params.flyTo, 'dateFrom:', params.dateFrom, 'dateTo:', params.dateTo, 'adults:', params.adults, 'currency:', params.currency);
+      const response = await axios.get('https://api.tequila.kiwi.com/v2/search', {
         headers: {
           'apikey': this.apiKey
         },
@@ -51,7 +52,7 @@ export class KiwiClient {
           limit: 10
         }
       });
-
+      console.log('searchFlights from:', params.flyFrom, 'to:', params.flyTo, 'status:', response.status);
       return {
         data: response.data.data
       };

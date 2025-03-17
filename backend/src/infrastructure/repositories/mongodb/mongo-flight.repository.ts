@@ -11,8 +11,8 @@ export class MongoFlightRepository implements FlightRepository {
     return this.mapToEntity(flight);
   }
 
-  async findByTravelPreferenceId(travelPreferenceId: string): Promise<Flight[]> {
-    const flights = await FlightModel.find({ travelPreferenceId });
+  async findByTravelPreferenceId(preferenceId: string): Promise<Flight[]> {
+    const flights = await FlightModel.find({ travelPreferenceId: preferenceId });
     return flights.map(flight => this.mapToEntity(flight));
   }
 

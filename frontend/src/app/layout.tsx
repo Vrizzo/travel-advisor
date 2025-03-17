@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { FlightSearchButton } from "@/components/FlightSearchButton";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -48,9 +49,7 @@ export default function RootLayout({
                 </div>
               </div>
               <div className="hidden md:block">
-                <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-md">
-                  Get Started
-                </button>
+                <FlightSearchButton />
               </div>
             </div>
           </div>

@@ -45,7 +45,7 @@ export default function Home() {
       });
 
       // Redirect to routes page with the new preference ID
-      router.push(`/routes?preference=${newPreference.id}`);
+      router.push('/preferences');
     } catch (err) {
       console.error('Error saving preference:', err);
       setError('Failed to save preference. Please try again.');
@@ -110,8 +110,16 @@ export default function Home() {
                           name="dateFrom"
                           id="dateFrom"
                           value={dateFrom}
-                          onChange={(e) => setDateFrom(e.target.value)}
-                          className="shadow-sm bg-neutral-800 border-neutral-700 focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border rounded-md p-2 text-white"
+                          onChange={(e) => {
+                            setDateFrom(e.target.value);
+                            // Calculate date 2 days after selected date
+                            const fromDate = new Date(e.target.value);
+                            const toDate = new Date(fromDate);
+                            toDate.setDate(fromDate.getDate() + 2);
+                            // Format the date to YYYY-MM-DD for the input
+                            setDateTo(toDate.toISOString().split('T')[0]);
+                          }}
+                          className="shadow-sm bg-neutral-800 border-neutral-700 focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border rounded-md p-2 text-white [color-scheme:dark]"
                         />
                       </div>
                     </div>
@@ -127,7 +135,7 @@ export default function Home() {
                           id="dateTo"
                           value={dateTo}
                           onChange={(e) => setDateTo(e.target.value)}
-                          className="shadow-sm bg-neutral-800 border-neutral-700 focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border rounded-md p-2 text-white"
+                          className="shadow-sm bg-neutral-800 border-neutral-700 focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border rounded-md p-2 text-white [color-scheme:dark]"
                         />
                       </div>
                     </div>
@@ -165,7 +173,7 @@ export default function Home() {
                           </svg>
                           Processing...
                         </>
-                      ) : 'Search Routes'}
+                      ) : 'Create your travel preferences'}
                     </button>
                   </div>
                 </form>

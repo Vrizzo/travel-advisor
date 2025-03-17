@@ -1,5 +1,6 @@
 import { DeletePreferenceButton } from './DeletePreferenceButton';
 import { SearchRoutesButton } from './SearchRoutesButton';
+import AffordableFlightsButton from './AffordableFlightsButton';
 
 interface TravelPreference {
   id: string;
@@ -85,6 +86,7 @@ export default async function PreferencesList() {
                 </div>
               </div>
               <div className="flex items-center space-x-4">
+                <AffordableFlightsButton preferenceId={preference.id} />
                 <DeletePreferenceButton id={preference.id} />
                 <SearchRoutesButton id={preference.id} />
               </div>

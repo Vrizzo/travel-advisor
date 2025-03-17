@@ -40,6 +40,13 @@ export class SearchFlightsUseCase {
         };
         
         const flightResults = await this.kiwiClient.searchFlights(searchParams);
+        
+        // Check if the search was successful and has valid data
+        if (!flightResults || !flightResults.data || !Array.isArray(flightResults.data)) {
+          console.error(`❌ Invalid response format for route ${route.departureAirport} to ${route.arrivalAirport} : ${JSON.stringify(flightResults)}`);
+          continue;
+        }
+        
         console.log(`✅ Found ${flightResults.data.length} flights from ${route.departureAirport} to ${route.arrivalAirport}`);
         
         // Filter flights by budget and save them
@@ -49,6 +56,12 @@ export class SearchFlightsUseCase {
         // Save each affordable flight
         for (const flightData of affordableFlights) {
           try {
+            // Validate flight data before creating entity
+            if (!flightData.flyFrom || !flightData.flyTo || !flightData.local_departure || !flightData.local_arrival || !flightData.price) {
+              console.error('❌ Invalid flight data format:', flightData);
+              continue;
+            }
+
             // Create a Flight entity
             const flight = new Flight(
               flightData.flyFrom,
@@ -56,7 +69,7 @@ export class SearchFlightsUseCase {
               new Date(flightData.local_departure),
               new Date(flightData.local_arrival),
               flightData.price,
-              flightData.airlines[0] || 'Unknown',
+              flightData.airlines?.[0] || 'Unknown',
               flightData.deep_link,
               preference.id!
             );
@@ -65,11 +78,11 @@ export class SearchFlightsUseCase {
             const savedFlight = await this.flightRepository.save(flight);
             savedFlights.push(savedFlight);
           } catch (error) {
-            console.error(`Error saving flight: ${error instanceof Error ? error.message : String(error)}`);
+            console.error(`❌ Error saving flight: ${error instanceof Error ? error.message : String(error)}`);
           }
         }
       } catch (error) {
-        console.error(`Error searching flights for route ${route.departureAirport} to ${route.arrivalAirport}: ${error instanceof Error ? error.message : String(error)}`);
+        console.error(`❌ Error searching flights for route ${route.departureAirport} to ${route.arrivalAirport}: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     

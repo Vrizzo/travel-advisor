@@ -6,6 +6,7 @@ import { MongoTravelPreferenceRepository } from '../infrastructure/repositories/
 import { MongoRouteRepository } from '../infrastructure/repositories/mongodb/mongo-route.repository';
 import { MongoFlightRepository } from '../infrastructure/repositories/mongodb/mongo-flight.repository';
 import { SearchFlightsUseCase } from '../application/use-cases/search-flights.use-case';
+import { KiwiClient } from 'infrastructure/clients/kiwi/kiwi.client';
 
 // Function to disconnect from MongoDB
 const disconnectDB = async (): Promise<void> => {
@@ -31,7 +32,7 @@ async function searchFlights() {
     const flightRepository = new MongoFlightRepository();
     
     // Initialize use case
-    const searchFlightsUseCase = new SearchFlightsUseCase(flightRepository);
+    const searchFlightsUseCase = new SearchFlightsUseCase(flightRepository, new KiwiClient(''));
     const findCompatibleRoutesUseCase = new FindCompatibleRoutesUseCase(
       travelPreferenceRepository,
       routeRepository,
