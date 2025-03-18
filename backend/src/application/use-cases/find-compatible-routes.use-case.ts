@@ -7,7 +7,6 @@ import { SearchFlightsUseCase } from './search-flights.use-case';
 
 export class FindCompatibleRoutesUseCase {
 
-
   constructor(
     private readonly travelPreferenceRepository: TravelPreferenceRepository,
     private readonly routeRepository: RouteRepository,

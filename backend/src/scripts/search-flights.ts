@@ -32,7 +32,7 @@ async function searchFlights() {
     const flightRepository = new MongoFlightRepository();
     
     // Initialize use case
-    const searchFlightsUseCase = new SearchFlightsUseCase(flightRepository, new KiwiClient(''));
+    const searchFlightsUseCase = new SearchFlightsUseCase(flightRepository, new KiwiClient());
     const findCompatibleRoutesUseCase = new FindCompatibleRoutesUseCase(
       travelPreferenceRepository,
       routeRepository,

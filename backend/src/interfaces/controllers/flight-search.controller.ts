@@ -19,7 +19,7 @@ export class FlightSearchController {
       const findCompatibleRoutesUseCase = new FindCompatibleRoutesUseCase(
         travelPreferenceRepository,
         routeRepository,
-        searchFlightsUseCase
+        new SearchFlightsUseCase(new MongoFlightRepository(), new KiwiClient('eXvQj9tCWpz81UgB3blKh5POjZQeTjpg'))
       );
 
       // Execute the search
