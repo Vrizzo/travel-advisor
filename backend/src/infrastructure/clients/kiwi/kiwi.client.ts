@@ -45,11 +45,12 @@ export class KiwiClient {
           fly_from: params.flyFrom,
           fly_to: params.flyTo,
           date_from: params.dateFrom,
-          date_to: params.dateTo,
+          return_to: params.dateTo,
+          return_from: params.dateTo,
           adults: params.adults,
           curr: params.currency,
           partner: 'traveladvisor',
-          limit: 10
+          limit: 20
         }
       });
       console.log('searchFlights from:', params.flyFrom, 'to:', params.flyTo, 'status:', response.status);

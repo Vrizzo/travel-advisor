@@ -34,12 +34,6 @@ export default function RootLayout({
                       Home
                     </a>
                     <a
-                      href="/routes"
-                      className="text-gray-400 hover:text-purple-400 px-3 py-2 text-sm font-medium"
-                    >
-                      Routes
-                    </a>
-                    <a
                       href="/preferences"
                       className="text-gray-400 hover:text-purple-400 px-3 py-2 text-sm font-medium"
                     >
