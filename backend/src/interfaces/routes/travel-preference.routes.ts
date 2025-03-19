@@ -1,18 +1,18 @@
 import { Router } from 'express';
 import { TravelPreferenceController } from '../controllers/travel-preference.controller';
-import { TravelPreferenceUseCase } from '../../application/use-cases/travel-preference.use-case';
 import { MongoTravelPreferenceRepository } from '../../infrastructure/repositories/mongodb/mongo-travel-preference.repository';
+import { TravelPreferenceUseCase } from '../../application/use-cases/travel-preference.use-case';
 
-export const travelPreferenceRouter = Router();
+const router = Router();
 
-// Initialize dependencies
-const repository = new MongoTravelPreferenceRepository();
-const useCase = new TravelPreferenceUseCase(repository);
-const controller = new TravelPreferenceController(useCase);
+const travelPreferenceRepository = new MongoTravelPreferenceRepository();
+const travelPreferenceUseCase = new TravelPreferenceUseCase(travelPreferenceRepository);
+const travelPreferenceController = new TravelPreferenceController(travelPreferenceUseCase);
 
-// Bind controller methods to routes
-travelPreferenceRouter.post('/', (req, res) => controller.create(req, res));
-travelPreferenceRouter.get('/', (req, res) => controller.getAll(req, res));
-travelPreferenceRouter.get('/:id', (req, res) => controller.getById(req, res));
-travelPreferenceRouter.put('/:id', (req, res) => controller.update(req, res));
-travelPreferenceRouter.delete('/:id', (req, res) => controller.delete(req, res)); 
+router.get('/', travelPreferenceController.getAll.bind(travelPreferenceController));
+router.get('/:id', travelPreferenceController.getById.bind(travelPreferenceController));
+router.post('/', travelPreferenceController.create.bind(travelPreferenceController));
+router.put('/:id', travelPreferenceController.update.bind(travelPreferenceController));
+router.delete('/:id', travelPreferenceController.delete.bind(travelPreferenceController));
+
+export { router as travelPreferenceRouter }; 

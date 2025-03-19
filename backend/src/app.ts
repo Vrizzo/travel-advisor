@@ -1,7 +1,7 @@
 import express from 'express';
-import { travelPreferenceRouter } from './interfaces/routes/travel-preference.routes';
-import { flightSearchRouter } from './interfaces/routes/flight-search.routes';
 import cors from 'cors';
+import flightSearchRouter from './interfaces/routes/flight-search.routes';
+import { travelPreferenceRouter } from './interfaces/routes/travel-preference.routes';
 import { flightRouter } from './interfaces/routes/flight.routes';
 
 const app = express();
@@ -24,7 +24,7 @@ app.get('/ping', (req, res) => {
 });
 
 // API routes
-app.use('/api/travel-preferences', travelPreferenceRouter);
 app.use('/api/flight-search', flightSearchRouter);
+app.use('/api/travel-preferences', travelPreferenceRouter);
 app.use('/api/flights', flightRouter);
 export default app; 
